@@ -7,6 +7,7 @@ import java.io.IOException;
 public class TradeData implements Writable {
     private IntWritable tradeQty;
     private DoubleWritable price;
+    private long timeStamp;
 
     public TradeData() {
         this.tradeQty = new IntWritable();
@@ -25,6 +26,11 @@ public class TradeData implements Writable {
     public double getPrice() {
         return price.get();
     }
+
+    public long getTimeStamp() {
+        return timeStamp;
+    }
+
 
     @Override
     public void write(DataOutput out) throws IOException {
