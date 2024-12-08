@@ -1,13 +1,20 @@
-package io.github.jiangdequan;
+package driver;
+
+import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.*;
-import org.apache.hadoop.mapreduce.*;
+import org.apache.hadoop.io.DoubleWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
-import java.io.IOException;
+import mapper.*;
+import reducer.*;
+import util.TradeData;
 
 public class TradeController {
 
@@ -57,7 +64,7 @@ public class TradeController {
         // Reducer 设置
         job.setReducerClass(TradeFilterReducer.class);
         job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(DoubleWritable.class);
+        job.setOutputValueClass(Text.class);
 
         // 设置任务的其他属性
         job.setNumReduceTasks(1);  // 根据数据量可以调整这个值
@@ -83,12 +90,12 @@ public class TradeController {
         // Mapper 设置
         job.setMapperClass(TradeMergeMapper.class);
         job.setMapOutputKeyClass(Text.class);
-        job.setMapOutputValueClass(LongWritable.class);
+        job.setMapOutputValueClass(DoubleWritable.class);
 
         // Reducer 设置
         job.setReducerClass(TradeMergeReducer.class);
         job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(LongWritable.class);
+        job.setOutputValueClass(DoubleWritable.class);
 
         // 设置任务的其他属性
         job.setNumReduceTasks(1);  // 根据数据量可以调整这个值

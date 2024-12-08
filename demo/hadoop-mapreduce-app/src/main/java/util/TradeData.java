@@ -1,13 +1,13 @@
-import org.apache.hadoop.io.*;
+package util;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
+import org.apache.hadoop.io.*;
+import java.io.*;
+
 
 public class TradeData implements Writable {
+
     private IntWritable tradeQty;
     private DoubleWritable price;
-    private long timeStamp;
 
     public TradeData() {
         this.tradeQty = new IntWritable();
@@ -25,10 +25,6 @@ public class TradeData implements Writable {
 
     public double getPrice() {
         return price.get();
-    }
-
-    public long getTimeStamp() {
-        return timeStamp;
     }
 
 
