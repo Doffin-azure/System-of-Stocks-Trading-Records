@@ -23,21 +23,22 @@ public class TradeFilterMapper extends Mapper<LongWritable, Text, Text, IntWrita
         double price = Double.parseDouble(columns[12]);
         int tradeQty = Integer.parseInt(columns[13]);
         String execType = columns[14];
+        Long timeStamp = Long.parseLong(columns[15]);
 
         if ("F".equals(execType)) {
             // 判断是买单还是卖单
             String orderType;
             if (bidAppSeqNum > offerAppSeqNum) {
                 orderType = "Buy"; // 买单
-                keyOut.set(orderType+"_"+securityID+"_"+bidAppSeqNum);
+                keyOut.set(orderType+"_"+securityID+"_"+bidAppSeqNum+"_"+timeStamp);
             } else {
                 orderType = "Sell"; // 卖单 
-                keyOut.set(orderType+"_"+securityID+"_"+offerAppSeqNum);
+                keyOut.set(orderType+"_"+securityID+"_"+offerAppSeqNum+"_"+timeStamp);
             }
 
 
             // 输出成交额
-            valueOut = new TradeData(tradeQty, price); 
+            valueOut = new TradeData(tradeQty, price);
 
             // 写入上下文
             context.write(keyOut, valueOut);
