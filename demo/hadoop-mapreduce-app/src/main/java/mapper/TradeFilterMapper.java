@@ -1,19 +1,19 @@
-package io.github.jiangdequan;
-
-import org.apache.hadoop.io.*;
-import org.apache.hadoop.mapreduce.*;
-import org.w3c.dom.Text;
+package mapper;
 
 import java.io.IOException;
 
-import javax.naming.Context;
+import org.apache.hadoop.io.*;
+import org.apache.hadoop.mapreduce.Mapper;
 
-public class TradeFilterMapper extends Mapper<LongWritable, Text, Text, IntWritable> {
+import util.*;
+
+
+public class TradeFilterMapper extends Mapper<Object, Text, Text, TradeData> {
     private Text keyOut = new Text();
     private TradeData valueOut = new TradeData();
 
     @Override
-    protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+    protected void map(Object key, Text value, Context context) throws IOException, InterruptedException {
         String tradeLine = value.toString();
         String[] columns = tradeLine.split("\t");
 

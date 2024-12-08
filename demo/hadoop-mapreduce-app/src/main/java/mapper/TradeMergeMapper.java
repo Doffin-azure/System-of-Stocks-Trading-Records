@@ -1,19 +1,18 @@
-package io.github.jiangdequan;
+package mapper;
 
 import java.io.IOException;
-
-import javax.naming.Context;
-
-import org.w3c.dom.Text;
-
+import java.sql.Date;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 
-public class TradeMergeMapper extends Mapper<Text, DoubleWritable, DoubleWritable, Text> {
+import org.apache.hadoop.io.*;
+import org.apache.hadoop.mapreduce.Mapper;
+
+
+public class TradeMergeMapper extends Mapper<Text, Text, Text, DoubleWritable> {
     Long allStock = 17170245800L;
     int k = 1;// 用于计算时间窗口
     private Text keyOut = new Text();
-    private LongWritable valueOut = new LongWritable();
+    private DoubleWritable valueOut = new DoubleWritable();
 
     @Override
     protected void map(Text key, Text value, Context context) throws IOException, InterruptedException {
@@ -22,12 +21,11 @@ public class TradeMergeMapper extends Mapper<Text, DoubleWritable, DoubleWritabl
         Long timeStamp = Long.parseLong(columns[3]);
         String orderType = columns[0];
         String securityID = columns[1];
-        String appSeqNum = columns[2];
 
         String[] values = value.toString().split(",");
 
         Long tradeQty = Long.parseLong(values[0]);
-        Long tradeAmount = Long.parseLong(values[1]);
+        Double tradeAmount = Double.parseDouble(values[1]);
 
         String tradeType = "";
         // 超大单
@@ -58,7 +56,8 @@ public class TradeMergeMapper extends Mapper<Text, DoubleWritable, DoubleWritabl
     String getTradingTimeSegment(Long timeStamp) {
         Date date = new Date(timeStamp);
         SimpleDateFormat sdf = new SimpleDateFormat("HHmmssSSS");
-        String timeStr = hourMinFormat.format(date);
+
+        String timeStr = sdf.format(date);
         // 判断是否在开盘集合竞价时间段 (09:15 - 09:25)
         if (timeStr.compareTo("09:15") >= 0 && timeStr.compareTo("09:25") <= 0) {
             return "OpenAuction";
