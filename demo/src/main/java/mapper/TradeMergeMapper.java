@@ -1,26 +1,32 @@
 package mapper;
 
 import java.io.IOException;
-import java.sql.Date;
+import java.util.Date;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
 import org.apache.hadoop.io.*;
 import org.apache.hadoop.mapreduce.Mapper;
 
 
-public class TradeMergeMapper extends Mapper<Text, Text, Text, DoubleWritable> {
+public class TradeMergeMapper extends Mapper<Object, Text, Text, DoubleWritable> {
     Long allStock = 17170245800L;
     int k = 1;// 用于计算时间窗口
     private Text keyOut = new Text();
     private DoubleWritable valueOut = new DoubleWritable();
 
     @Override
-    protected void map(Text key, Text value, Context context) throws IOException, InterruptedException {
+    protected void map(Object key, Text value, Context context) throws IOException, InterruptedException {
         // 直接将从上一个Reducer输出的结果传递给Reducer
+
+        String line = value.toString();
+        String[] parts = line.split("\t");
+        key = new Text(parts[0]);
+        value = new Text(parts[1]);
         String[] columns = key.toString().split("_");
-        Long timeStamp = Long.parseLong(columns[3]);
+        String timeStamp = columns[3];
         String orderType = columns[0];
-        String securityID = columns[1];
+        
 
         String[] values = value.toString().split(",");
 
@@ -45,25 +51,34 @@ public class TradeMergeMapper extends Mapper<Text, Text, Text, DoubleWritable> {
 
         // 时间窗口
 
-        String tradingTimeSegment = getTradingTimeSegment(timeStamp);
-        keyOut.set(orderType + "_" + securityID + "_" + tradingTimeSegment + "_" + tradeType);
+        String tradingTimeSegment;
+        try {
+            tradingTimeSegment = getTradingTimeSegment(timeStamp);
+            
+        keyOut.set(orderType + "_" + "_" + tradingTimeSegment + "_" + tradeType);
 
         valueOut.set(tradeAmount);
 
         context.write(keyOut, valueOut);
+        } catch (ParseException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
-    String getTradingTimeSegment(Long timeStamp) {
-        Date date = new Date(timeStamp);
-        SimpleDateFormat sdf = new SimpleDateFormat("HHmmssSSS");
+    String getTradingTimeSegment(String timeStamp) throws ParseException {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+        Date date = sdf.parse(timeStamp);
 
-        String timeStr = sdf.format(date);
+        // 使用新的 SimpleDateFormat 格式化输出
+        SimpleDateFormat outputFormat = new SimpleDateFormat("HHmm");
+        String timeStr = outputFormat.format(date);
         // 判断是否在开盘集合竞价时间段 (09:15 - 09:25)
-        if (timeStr.compareTo("09:15") >= 0 && timeStr.compareTo("09:25") <= 0) {
+        if (timeStr.compareTo("0915") >= 0 && timeStr.compareTo("0925") <= 0) {
             return "OpenAuction";
         }
         // 判断是否在上午连续竞价时间段 (09:30 - 11:30)
-        else if (timeStr.compareTo("09:30") >= 0 && timeStr.compareTo("11:30") <= 0) {
+        else if (timeStr.compareTo("0930") >= 0 && timeStr.compareTo("1130") <= 0) {
             int hour = Integer.parseInt(timeStr.substring(0, 2));
             int min = Integer.parseInt(timeStr.substring(2, 4));
             int totalMinutes = (hour - 9) * 60 + min;
@@ -72,7 +87,7 @@ public class TradeMergeMapper extends Mapper<Text, Text, Text, DoubleWritable> {
 
         }
         // 判断是否在下午连续竞价时间段 (13:00 - 15:00)
-        else if (timeStr.compareTo("13:00") >= 0 && timeStr.compareTo("15:00") <= 0) {
+        else if (timeStr.compareTo("1300") >= 0 && timeStr.compareTo("1500") <= 0) {
             int hour = Integer.parseInt(timeStr.substring(0, 2));
             int min = Integer.parseInt(timeStr.substring(2, 4));
             int totalMinutes = (hour - 13) * 60 + min;
@@ -80,10 +95,10 @@ public class TradeMergeMapper extends Mapper<Text, Text, Text, DoubleWritable> {
             return "AfternoonAuction" + segment;
         }
         // 判断是否在收盘集合竞价时间段 (14:57 - 15:00)
-        else if (timeStr.compareTo("14:57") >= 0 && timeStr.compareTo("15:00") <= 0) {
+        else if (timeStr.compareTo("1457") >= 0 && timeStr.compareTo("1500") <= 0) {
             return "CloseAuction";
         }
-        return "UnknownSegment"; // 如果时间戳不在任何预定义的时间段内
+        return timeStr; // 如果时间戳不在任何预定义的时间段内
 
     }
 }
