@@ -86,8 +86,8 @@ public class TradeMergeMapper extends Mapper<Object, Text, Text, DoubleWritable>
             return "MorningAuction" + segment;
 
         }
-        // 判断是否在下午连续竞价时间段 (13:00 - 15:00)
-        else if (timeStr.compareTo("1300") >= 0 && timeStr.compareTo("1500") <= 0) {
+        // 判断是否在下午连续竞价时间段 (13:00 - 14:57)
+        else if (timeStr.compareTo("1300") >= 0 && timeStr.compareTo("1457") <= 0) {
             int hour = Integer.parseInt(timeStr.substring(0, 2));
             int min = Integer.parseInt(timeStr.substring(2, 4));
             int totalMinutes = (hour - 13) * 60 + min;
