@@ -90,12 +90,12 @@ public class TradeController {
         // Mapper 设置
         job.setMapperClass(TradeMergeMapper.class);
         job.setMapOutputKeyClass(Text.class);
-        job.setMapOutputValueClass(DoubleWritable.class);
+        job.setMapOutputValueClass(Text.class);
 
         // Reducer 设置
         job.setReducerClass(TradeMergeReducer.class);
         job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(DoubleWritable.class);
+        job.setOutputValueClass(Text.class);
 
         // 设置任务的其他属性
         job.setNumReduceTasks(1);  // 根据数据量可以调整这个值

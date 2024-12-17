@@ -26,6 +26,8 @@ public class TradeFilterMapper extends Mapper<Object, Text, Text, TradeData> {
         Long timeStamp = Long.parseLong(columns[15]);
 
         if ("F".equals(execType)) {
+            if(securityID == 1) {
+            
             // 判断是买单还是卖单
             String orderType;
             if (bidAppSeqNum > offerAppSeqNum) {
@@ -43,7 +45,7 @@ public class TradeFilterMapper extends Mapper<Object, Text, Text, TradeData> {
             // 写入上下文
             context.write(keyOut, valueOut);
 
-        }
+        }}
     }
 }
 
