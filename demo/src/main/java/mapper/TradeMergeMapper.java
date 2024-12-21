@@ -53,7 +53,7 @@ public class TradeMergeMapper extends Mapper<Object, Text, Text, Text> {
         String tradingTimeSegment;
         try {
             tradingTimeSegment = getTradingTimeSegment(timeStamp);
-            if (tradingTimeSegment.equals("09:25") ){
+            if (tradingTimeSegment.equals("skip") ){
                 return;
             }
             keyOut.set(orderType + "_" + securityId + "_" + tradingTimeSegment + "_" + tradeType);
@@ -74,39 +74,67 @@ public class TradeMergeMapper extends Mapper<Object, Text, Text, Text> {
         // 使用新的 SimpleDateFormat 格式化输出
         SimpleDateFormat outputFormat = new SimpleDateFormat("HHmm");
         String timeStr = outputFormat.format(date);
+
+        // 获取时间戳的日期部分
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
+        String datePart = dateFormat.format(date);
+
         // 判断是否在开盘集合竞价时间段 (09:15 - 09:25)
         if (timeStr.compareTo("0915") >= 0 && timeStr.compareTo("0925") <= 0) {
-            return "09:25";
+            String startTime = datePart + "091500000"; // 09:15:00.000
+            String endTime = datePart + "092500000"; // 09:25:00.000
+            return "skip";
         }
         // 判断是否在上午连续竞价时间段 (09:30 - 11:30)
         else if (timeStr.compareTo("0930") >= 0 && timeStr.compareTo("1130") <= 0) {
             int hour = Integer.parseInt(timeStr.substring(0, 2));
             int min = Integer.parseInt(timeStr.substring(2, 4));
             int totalMinutes = (hour - 9) * 60 + min;
-            int segment = totalMinutes / k ;
+            int segment = totalMinutes / k;
 
             int return_min = segment * k;
             int return_hour = 9 + return_min / 60;
-            String return_time = String.format("%02d:%02d", return_hour, return_min % 60);
-            return return_time;
+            String returnTimeStart = String.format("%02d:%02d", return_hour, return_min % 60);
 
+            // 计算结束时间
+            return_min = (segment + 1) * k;
+            return_hour = 9 + return_min / 60;
+            String returnTimeEnd = String.format("%02d:%02d", return_hour, return_min % 60);
+
+            String startTime = datePart + returnTimeStart.replace(":", "") + "00000"; // start time
+            String endTime = datePart + returnTimeEnd.replace(":", "") + "00000"; // end time
+            return startTime + "to" + endTime;
         }
-        // 判断是否在下午连续竞价时间段 (13:00 - 14:57)
-        else if (timeStr.compareTo("1300") >= 0 && timeStr.compareTo("1501") <= 0) {
+        // 判断是否在下午连续竞价时间段 (13:00 - 14:57) // 特别修改为15:00
+        else if (timeStr.compareTo("1300") >= 0 && timeStr.compareTo("1500") <= 0) {
             int hour = Integer.parseInt(timeStr.substring(0, 2));
             int min = Integer.parseInt(timeStr.substring(2, 4));
             int totalMinutes = (hour - 13) * 60 + min;
             int segment = totalMinutes / k;
-            
+
+            if (timeStr.compareTo("1500") == 0) {
+                segment -= 1;
+            }// 特别修改为15:00
+
             int return_min = segment * k;
             int return_hour = 13 + return_min / 60;
-            String return_time = String.format("%02d:%02d", return_hour, return_min % 60);
-            return return_time;
+            String returnTimeStart = String.format("%02d:%02d", return_hour, return_min % 60);
+
+            // 计算结束时间
+            return_min = (segment + 1) * k;
+            return_hour = 13 + return_min / 60;
+            String returnTimeEnd = String.format("%02d:%02d", return_hour, return_min % 60);
+
+            String startTime = datePart + returnTimeStart.replace(":", "") + "00000"; // start time
+            String endTime = datePart + returnTimeEnd.replace(":", "") + "00000"; // end time
+            return startTime + "to" + endTime;
         }
-        // 判断是否在收盘集合竞价时间段 (14:57 - 15:00)
+       /*  // 判断是否在收盘集合竞价时间段 (14:57 - 15:00)
         else if (timeStr.compareTo("1457") >= 0 && timeStr.compareTo("1500") <= 0) {
-            return "15:00";
-        }
+            String startTime = datePart + "1457000000"; // 14:57:00.000
+            String endTime = datePart + "1500000000"; // 15:00:00.000
+            return startTime + "to" + endTime;
+        }*/
         return timeStr; // 如果时间戳不在任何预定义的时间段内
 
     }
