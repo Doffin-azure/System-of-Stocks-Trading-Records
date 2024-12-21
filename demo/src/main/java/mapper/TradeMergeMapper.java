@@ -53,7 +53,9 @@ public class TradeMergeMapper extends Mapper<Object, Text, Text, Text> {
         String tradingTimeSegment;
         try {
             tradingTimeSegment = getTradingTimeSegment(timeStamp);
-
+            if (tradingTimeSegment.equals("09:25") ){
+                return;
+            }
             keyOut.set(orderType + "_" + securityId + "_" + tradingTimeSegment + "_" + tradeType);
 
             valueOut.set(tradeQty + "," + tradeAmount);
@@ -90,7 +92,7 @@ public class TradeMergeMapper extends Mapper<Object, Text, Text, Text> {
 
         }
         // 判断是否在下午连续竞价时间段 (13:00 - 14:57)
-        else if (timeStr.compareTo("1300") >= 0 && timeStr.compareTo("1457") <= 0) {
+        else if (timeStr.compareTo("1300") >= 0 && timeStr.compareTo("1501") <= 0) {
             int hour = Integer.parseInt(timeStr.substring(0, 2));
             int min = Integer.parseInt(timeStr.substring(2, 4));
             int totalMinutes = (hour - 13) * 60 + min;
