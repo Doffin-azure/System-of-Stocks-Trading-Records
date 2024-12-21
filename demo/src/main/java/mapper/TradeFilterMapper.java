@@ -11,6 +11,13 @@ import util.*;
 public class TradeFilterMapper extends Mapper<Object, Text, Text, TradeData> {
     private Text keyOut = new Text();
     private TradeData valueOut = new TradeData();
+    private int aimSecurityID = 1;
+
+    @Override
+    protected void setup(Context context) throws IOException, InterruptedException {
+        aimSecurityID = context.getConfiguration().getInt("securityID", 1);
+    }
+
 
     @Override
     protected void map(Object key, Text value, Context context) throws IOException, InterruptedException {
@@ -25,8 +32,10 @@ public class TradeFilterMapper extends Mapper<Object, Text, Text, TradeData> {
         String execType = columns[14];
         Long timeStamp = Long.parseLong(columns[15]);
 
+
+
         if ("F".equals(execType)) {
-            if(securityID == 1) {
+            if(securityID == aimSecurityID) {
             
             // 判断是买单还是卖单
             String orderType;
