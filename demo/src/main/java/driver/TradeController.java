@@ -19,20 +19,26 @@ import util.TradeData;
 public class TradeController {
 
     public static void main(String[] args) throws Exception {
-        if (args.length != 4) {
-            System.err.println("Usage: TradeController <input path> <temp output path> <final output path>");
-            System.exit(-1);
+        int securityID = 1;
+        int timeWindow = 10;
+        long allStock = 17170245800L;
+        try{
+        securityID = Integer.parseInt(args[4]);
+        timeWindow = Integer.parseInt(args[5]);
+        }catch(Exception e){
+            System.out.println("Please input the securityID and timeWindow");
+            
         }
-
+    
         // Step 1: 设置并执行第一个MapReduce任务（TradeFilter任务）
-        int exitCode = runFirstMapReduceJob(args[0], args[1]);
+        int exitCode = runFirstMapReduceJob(args[0], args[1],securityID);
         if (exitCode != 0) {
             System.err.println("First MapReduce job failed!");
             System.exit(exitCode);
         }
 
         // Step 2: 设置并执行第二个MapReduce任务（TradeMerge任务）
-        exitCode = runSecondMapReduceJob(args[1], args[2]);
+        exitCode = runSecondMapReduceJob(args[1], args[2],timeWindow);
         if (exitCode != 0) {
             System.err.println("Second MapReduce job failed!");
             System.exit(exitCode);
@@ -44,15 +50,20 @@ public class TradeController {
             System.err.println("Third MapReduce job failed!");
             System.exit(exitCode);
         }
+
+        
+
         System.exit(0);
     }
 
-    private static int runFirstMapReduceJob(String inputPath, String outputPath) throws IOException, InterruptedException, ClassNotFoundException {
+    private static int runFirstMapReduceJob(String inputPath, String outputPath,int securityID) throws IOException, InterruptedException, ClassNotFoundException {
         // 设置作业的配置
         Configuration conf = new Configuration();
+        conf.setInt("securityID", securityID);
+
         Job job = Job.getInstance(conf, "TradeFilter");
 
-        job.setJarByClass(TradeController.class);
+        job.setJarByClass(TradeController.class); 
 
         // 输入数据格式
         FileInputFormat.addInputPath(job, new Path(inputPath));
@@ -78,9 +89,11 @@ public class TradeController {
         return job.waitForCompletion(true) ? 0 : 1;
     }
 
-    private static int runSecondMapReduceJob(String inputPath, String outputPath) throws IOException, InterruptedException, ClassNotFoundException {
+    private static int runSecondMapReduceJob(String inputPath, String outputPath,int timeWindow) throws IOException, InterruptedException, ClassNotFoundException {
         // 设置作业的配置
         Configuration conf = new Configuration();
+        conf.setInt("timeWindow", timeWindow);
+
         Job job = Job.getInstance(conf, "TradeMerge");
 
         job.setJarByClass(TradeController.class);

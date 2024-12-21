@@ -15,6 +15,15 @@ public class TradeMergeMapper extends Mapper<Object, Text, Text, Text> {
     private Text valueOut = new Text();
 
     @Override
+    protected void setup(Context context) throws IOException, InterruptedException {
+        // 从配置中获取股票总量
+        allStock = context.getConfiguration().getLong("allStock", 17170245800L);
+        k = context.getConfiguration().getInt("timeWindow", 10);
+        System.out.println(k);
+    }
+
+
+    @Override
     protected void map(Object key, Text value, Context context) throws IOException, InterruptedException {
         // 直接将从上一个Reducer输出的结果传递给Reducer
 
