@@ -19,7 +19,7 @@ import util.TradeData;
 public class TradeController {
 
     public static void main(String[] args) throws Exception {
-        if (args.length != 3) {
+        if (args.length != 4) {
             System.err.println("Usage: TradeController <input path> <temp output path> <final output path>");
             System.exit(-1);
         }
@@ -38,6 +38,12 @@ public class TradeController {
             System.exit(exitCode);
         }
 
+        // Step 3: 添加并执行第三个MapReduce任务（Conver任务）
+        exitCode = runThirdMapReduceJob(args[2], args[3]);  // 添加第三个作业
+        if (exitCode != 0) {
+            System.err.println("Third MapReduce job failed!");
+            System.exit(exitCode);
+        }
         System.exit(0);
     }
 
@@ -94,6 +100,38 @@ public class TradeController {
 
         // Reducer 设置
         job.setReducerClass(TradeMergeReducer.class);
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(Text.class);
+
+        // 设置任务的其他属性
+        job.setNumReduceTasks(1);  // 根据数据量可以调整这个值
+
+        return job.waitForCompletion(true) ? 0 : 1;
+    }
+
+
+    private static int runThirdMapReduceJob(String inputPath, String outputPath) throws IOException, InterruptedException, ClassNotFoundException {
+        // 设置作业的配置
+        Configuration conf = new Configuration();
+        Job job = Job.getInstance(conf, "TradeConver");
+
+        job.setJarByClass(TradeController.class);
+
+        // 输入数据格式
+        FileInputFormat.addInputPath(job, new Path(inputPath));
+        job.setInputFormatClass(TextInputFormat.class);
+
+        // 输出数据格式
+        FileOutputFormat.setOutputPath(job, new Path(outputPath));
+        job.setOutputFormatClass(TextOutputFormat.class);
+
+        // Mapper 设置
+        job.setMapperClass(ConvertMapper.class); // 假设你使用了与前一个任务相同的Mapper
+        job.setMapOutputKeyClass(Text.class);
+        job.setMapOutputValueClass(Text.class);
+
+        // Reducer 设置
+        job.setReducerClass(ConverReducer.class);  // 使用你的ConverReducer
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
 
