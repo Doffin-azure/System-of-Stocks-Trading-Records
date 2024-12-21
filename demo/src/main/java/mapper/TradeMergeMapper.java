@@ -10,7 +10,7 @@ import org.apache.hadoop.mapreduce.Mapper;
 
 public class TradeMergeMapper extends Mapper<Object, Text, Text, Text> {
     Long allStock = 17170245800L;
-    int k = 10;// 用于计算时间窗口
+    int k = 20;// 用于计算时间窗口
     private Text keyOut = new Text();
     private Text valueOut = new Text();
 
@@ -89,15 +89,15 @@ public class TradeMergeMapper extends Mapper<Object, Text, Text, Text> {
         else if (timeStr.compareTo("0930") >= 0 && timeStr.compareTo("1130") <= 0) {
             int hour = Integer.parseInt(timeStr.substring(0, 2));
             int min = Integer.parseInt(timeStr.substring(2, 4));
-            int totalMinutes = (hour - 9) * 60 + min;
+            int totalMinutes = (hour - 9) * 60 + min - 30;
             int segment = totalMinutes / k;
 
-            int return_min = segment * k;
+            int return_min =30+ segment * k;
             int return_hour = 9 + return_min / 60;
             String returnTimeStart = String.format("%02d:%02d", return_hour, return_min % 60);
 
             // 计算结束时间
-            return_min = (segment + 1) * k;
+            return_min = 30+ (segment + 1) * k;
             return_hour = 9 + return_min / 60;
             String returnTimeEnd = String.format("%02d:%02d", return_hour, return_min % 60);
 
