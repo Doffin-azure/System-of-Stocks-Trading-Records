@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Data Visualization</title>
+    <!-- 引入 ECharts 库 -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.0/dist/echarts.min.js"></script>
+    <style>
+        /* 定义页面的容器样式 */
+        .container {
+            display: grid;  /* 使用 CSS 网格布局 */
+            grid-template-columns: 1fr 1fr; /* 定义两列 */
+            grid-template-rows: 1fr 1fr; /* 定义两行 */
+            gap: 20px; /* 每个网格之间的间距 */
+            height: 100vh; /* 设置容器高度为视口高度 */
+            padding: 20px; /* 设置容器内边距 */
+        }
+
+        /* 定义每个图表容器的样式 */
+        .chart-container {
+            width: 100%;
+            min-height: 300px; /* 最小高度为 300px */
+            border: 1px solid #ddd; /* 设置边框 */
+            padding: 10px;
+            box-sizing: border-box; /* 包含内边距和边框 */
+        }
+
+        /* 图表标题的样式 */
+        .chart-title {
+            text-align: center; /* 居中显示标题 */
+            font-size: 20px; /* 设置标题字体大小 */
+            margin-bottom: 10px; /* 设置底部外边距 */
+        }
+    </style>
+</head>
+<body>
+<!-- 页面容器，包含表单和四个图表 -->
+<div class="container">
+    <!-- 表单部分，用于选择起始时间和结束时间 -->
+    <form method="get" action="/showChart" style="grid-column: 1 / span 2;">
+        <label for="startTime">起始时间:</label>
+        <input type="number" id="startTime" name="startTime" step="1">
+        <label for="endTime">结束时间:</label>
+        <input type="number" id="endTime" name="endTime" step="1">
+        <button type="submit">筛选</button>
+    </form>
+
+    <!-- 图表 A: 各买卖单成交额占比（饼图） -->
+    <div class="chart-container">
+        <div class="chart-title">各买卖单成交额占比</div>
+        <div id="chartA" style="width: 100%; height: 100%;"></div>
+    </div>
+
+    <!-- 图表 B: 主力资金流向（折线图） -->
+    <div class="chart-container">
+        <div class="chart-title">主力资金流向</div>
+        <div id="chartB" style="width: 100%; height: 100%;"></div>
+    </div>
+
+    <!-- 图表 C: 各买卖单成交量占比（饼图） -->
+    <div class="chart-container">
+        <div class="chart-title">各买卖单成交量占比</div>
+        <div id="chartC" style="width: 100%; height: 100%;"></div>
+    </div>
+
+    <!-- 图表 D: 各单型净流入走向（折线图） -->
+    <div class="chart-container">
+        <div class="chart-title">各单型净流入走向</div>
+        <div id="chartD" style="width: 100%; height: 100%;"></div>
+    </div>
+</div>
+
+<script>
+    // 页面加载完毕时执行以下脚本
+    window.onload = function() {
+        // 获取从后端传递过来的数据
+        const data1 = {
+            superBuyAmount: [[${superBuyAmount}]],  // 超大买单成交额
+            bigBuyAmount: [[${bigBuyAmount}]],  // 大买单成交额
+            midBuyAmount: [[${midBuyAmount}]],  // 中买单成交额
+            smallBuyAmount: [[${smallBuyAmount}]],  // 小买单成交额
+            superSellAmount: [[${superSellAmount}]],  // 超大卖单成交额
+            bigSellAmount: [[${bigSellAmount}]],  // 大卖单成交额
+            midSellAmount: [[${midSellAmount}]],  // 中卖单成交额
+            smallSellAmount: [[${smallSellAmount}]],  // 小卖单成交额
+        };
+        const data2 = {
+            superBuyVolume: [[${superBuyVolume}]],  // 超大买单成交量
+            bigBuyVolume: [[${bigBuyVolume}]],  // 大买单成交量
+            midBuyVolume: [[${midBuyVolume}]],  // 中买单成交量
+            smallBuyVolume: [[${smallBuyVolume}]],  // 小买单成交量
+            superSellVolume: [[${superSellVolume}]],  // 超大卖单成交量
+            bigSellVolume: [[${bigSellVolume}]],  // 大卖单成交量
+            midSellVolume: [[${midSellVolume}]],  // 中卖单成交量
+            smallSellVolume: [[${smallSellVolume}]],  // 小卖单成交量
+        };
+
+        // 从后端传递的 JSON 字符串中解析时间范围和资金流向数据
+        const timeRange = JSON.parse('[[${timeRangeJson}]]');
+        const mainInflow = JSON.parse('[[${mainInflowJson}]]');
+        const mainInflowAmount = JSON.parse('[[${mainInflowAmountJson}]]');
+        const mainOutflow = JSON.parse('[[${mainOutflowJson}]]');
+        const supermainInflow = JSON.parse('[[${supermainInflowJson}]]');
+        const bigmainInflow = JSON.parse('[[${bigmainInflowJson}]]');
+        const midmainInflow = JSON.parse('[[${midmainInflowJson}]]');
+        const smallmainInflow = JSON.parse('[[${smallmainInflowJson}]]');
+
+        // 打印数据到控制台，方便调试
+        console.log("Time Range:", timeRange);
+        console.log("Main Inflow:", mainInflow);
+        console.log("Main Inflow Amount:", mainInflowAmount);
+        console.log("Main Outflow:", mainOutflow);
+        console.log("Super Main Inflow:", supermainInflow);
+        console.log("Big Main Inflow:", bigmainInflow);
+        console.log("Mid Main Inflow:", midmainInflow);
+        console.log("Small Main Inflow:", smallmainInflow);
+        console.log(data1);
+        console.log(data2); // 检查数据是否正确传递
+
+        // 图表 A: 使用 ECharts 绘制饼图
+        const chartA = echarts.init(document.getElementById('chartA'));
+        const optionA = {
+            tooltip: { trigger: 'item', formatter: '{a} <br/>{b}: {c} 元 ({d}%)' },  // 提示框显示格式
+            legend: {
+                orient: 'vertical',  // 垂直排列图例
+                left: 'left',  // 图例在左侧
+                data: ['超大买单', '大买单', '中买单', '小买单', '超大卖单', '大卖单', '中卖单', '小卖单'],  // 图例项
+            },
+            series: [
+                {
+                    name: '成交额分布',  // 系列名称
+                    type: 'pie',  // 饼图类型
+                    radius: '60%',  // 饼图半径
+                    center: ['50%', '45%'],  // 饼图中心位置
+                    data: [
+                        { value: data1.superBuyAmount, name: '超大买单', itemStyle: { color: '#8B0000' } },
+                        { value: data1.bigBuyAmount, name: '大买单', itemStyle: { color: '#B22222' } },
+                        { value: data1.midBuyAmount, name: '中买单', itemStyle: { color: '#CD5C5C' } },
+                        { value: data1.smallBuyAmount, name: '小买单', itemStyle: { color: '#FA8072' } },
+                        { value: data1.superSellAmount, name: '超大卖单', itemStyle: { color: '#006400' } },
+                        { value: data1.bigSellAmount, name: '大卖单', itemStyle: { color: '#228B22' } },
+                        { value: data1.midSellAmount, name: '中卖单', itemStyle: { color: '#32CD32' } },
+                        { value: data1.smallSellAmount, name: '小卖单', itemStyle: { color: '#90EE90' } },
+                    ],
+                },
+            ],
+        };
+        chartA.setOption(optionA);  // 设置图表选项并渲染
+
+        // 图表 B: 使用 ECharts 绘制折线图
+        const chartB = echarts.init(document.getElementById('chartB'));
+
+        // 格式化横坐标数据，确保时间部分为 4 位并插入冒号
+        const formattedTimeRange = timeRange.map(time => {
+            const timeStr = time.toString().padStart(4, '0');  // 补齐四位
+            return timeStr.substring(0, 2) + ':' + timeStr.substring(2, 4);  // 格式化为 XX:XX 格式
+        });
+
+        const optionB = {
+            tooltip: { trigger: 'axis' },
+            legend: { data: ['主力净流入', '主力流入', '主力流出'], top: '10%' },
+            grid: {
+                left: '15%',  // 调整左侧边距，确保纵坐标标签显示完整
+                right: '5%',  // 调整右侧边距
+                top: '7%',
+                bottom: '23%',  // 调整下方边距
+            },
+            xAxis: {
+                type: 'category',
+                data: formattedTimeRange,  // 使用格式化后的时间数据
+                axisLabel: { rotate: 45 }  // x 轴标签旋转45度
+            },
+            yAxis: { type: 'value' },  // y 轴为数值型
+            series: [
+                {
+                    name: '主力流入',
+                    type: 'line',
+                    data: mainInflowAmount,
+                    itemStyle: { color: '#FF0000' },
+                },
+                {
+                    name: '主力流出',
+                    type: 'line',
+                    data: mainOutflow,
+                    itemStyle: { color: '#00FF00' },
+                },
+                {
+                    name: '主力净流入',
+                    type: 'line',
+                    data: mainInflow,
+                    itemStyle: { color: '#0000FF' },
+                }
+            ]
+        };
+
+        chartB.setOption(optionB);  // 设置图表选项并渲染
+
+        // 图表 C: 绘制成交量占比饼图，代码类似图表 A
+        const chartC = echarts.init(document.getElementById('chartC'));
+        const optionC = {
+            tooltip: { trigger: 'item', formatter: '{a} <br/>{b}: {c} 单 ({d}%)' },
+            legend: {
+                orient: 'vertical',
+                left: 'left',
+                data: ['超大买单', '大买单', '中买单', '小买单', '超大卖单', '大卖单', '中卖单', '小卖单'],
+            },
+            series: [
+                {
+                    name: '成交量分布',
+                    type: 'pie',
+                    radius: '60%',
+                    center: ['50%', '45%'],
+                    data: [
+                        { value: data2.superBuyVolume, name: '超大买单', itemStyle: { color: '#8B0000' } },
+                        { value: data2.bigBuyVolume, name: '大买单', itemStyle: { color: '#B22222' } },
+                        { value: data2.midBuyVolume, name: '中买单', itemStyle: { color: '#CD5C5C' } },
+                        { value: data2.smallBuyVolume, name: '小买单', itemStyle: { color: '#FA8072' } },
+                        { value: data2.superSellVolume, name: '超大卖单', itemStyle: { color: '#006400' } },
+                        { value: data2.bigSellVolume, name: '大卖单', itemStyle: { color: '#228B22' } },
+                        { value: data2.midSellVolume, name: '中卖单', itemStyle: { color: '#32CD32' } },
+                        { value: data2.smallSellVolume, name: '小卖单', itemStyle: { color: '#90EE90' } },
+                    ],
+                },
+            ],
+        };
+        chartC.setOption(optionC);
+
+        // 图表 D: 绘制各单型净流入走向折线图，代码类似图表 B
+        const chartD = echarts.init(document.getElementById('chartD'));
+        const optionD = {
+            tooltip: { trigger: 'axis' },
+            legend: { data: ['超大单净流入', '大单净流入', '中单净流入', '小单净流入', '主力净流入'], top: '0%' },
+            grid: {
+                left: '15%',
+                right: '5%',
+                top: '7%',
+                bottom: '23%',
+            },
+            xAxis: {
+                type: 'category',
+                data: formattedTimeRange,
+                axisLabel: { rotate: 45 }
+            },
+            yAxis: { type: 'value' },
+            series: [
+                {
+                    name: '超大单净流入',
+                    type: 'line',
+                    data: supermainInflow,
+                    itemStyle: { color: '#DC143C' },  // 亮红色
+                },
+                {
+                    name: '大单净流入',
+                    type: 'line',
+                    data: bigmainInflow,
+                    itemStyle: { color: '#FFA500' },  // 亮橙色
+                },
+                {
+                    name: '中单净流入',
+                    type: 'line',
+                    data: midmainInflow,
+                    itemStyle: { color: '#FFD700' },  // 亮黄色
+                },
+                {
+                    name: '小单净流入',
+                    type: 'line',
+                    data: smallmainInflow,
+                    itemStyle: { color: '#32CD32' },  // 亮绿色
+                },
+                {
+                    name: '主力净流入',
+                    type: 'line',
+                    data: mainInflow,
+                    itemStyle: { color: '#1E90FF' },  // 亮蓝色
+                }
+            ]
+        };
+        chartD.setOption(optionD);  // 设置图表选项并渲染
+    };
+</script>
+</body>
+</html>
