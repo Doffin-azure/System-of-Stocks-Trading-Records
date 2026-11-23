@@ -1,6 +1,6 @@
 # Stock Trading Record Analysis
 
-A SUSTech STA321 course project that processes stock-trade records, estimates large-trade capital flows, and displays the resulting time series in a local web application.
+A course project for SUSTech's [STA321 Distributed Storage and Parallel Computing](https://mirrors.sustech.edu.cn/courses/syllabus/html/STA321.html). It processes stock-trade records with Hadoop MapReduce, estimates large-trade capital flows, and displays the resulting time series in a local Spring Boot dashboard.
 
 Start with the [course report](report/STA321%20Project%20Report.pdf) for the input and aggregation method.
 
