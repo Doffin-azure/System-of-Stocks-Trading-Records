@@ -71,7 +71,7 @@
     </div>
 </div>
 
-<script>
+<script th:inline="javascript">
     // 页面加载完毕时执行以下脚本
     window.onload = function() {
         // 获取从后端传递过来的数据
@@ -96,27 +96,14 @@
             smallSellVolume: [[${smallSellVolume}]],  // 小卖单成交量
         };
 
-        // 从后端传递的 JSON 字符串中解析时间范围和资金流向数据
-        const timeRange = JSON.parse('[[${timeRangeJson}]]');
-        const mainInflow = JSON.parse('[[${mainInflowJson}]]');
-        const mainInflowAmount = JSON.parse('[[${mainInflowAmountJson}]]');
-        const mainOutflow = JSON.parse('[[${mainOutflowJson}]]');
-        const supermainInflow = JSON.parse('[[${supermainInflowJson}]]');
-        const bigmainInflow = JSON.parse('[[${bigmainInflowJson}]]');
-        const midmainInflow = JSON.parse('[[${midmainInflowJson}]]');
-        const smallmainInflow = JSON.parse('[[${smallmainInflowJson}]]');
-
-        // 打印数据到控制台，方便调试
-        console.log("Time Range:", timeRange);
-        console.log("Main Inflow:", mainInflow);
-        console.log("Main Inflow Amount:", mainInflowAmount);
-        console.log("Main Outflow:", mainOutflow);
-        console.log("Super Main Inflow:", supermainInflow);
-        console.log("Big Main Inflow:", bigmainInflow);
-        console.log("Mid Main Inflow:", midmainInflow);
-        console.log("Small Main Inflow:", smallmainInflow);
-        console.log(data1);
-        console.log(data2); // 检查数据是否正确传递
+        const timeRange = [[${timeRange}]];
+        const mainInflow = [[${mainInflow}]];
+        const mainInflowAmount = [[${mainInflowAmount}]];
+        const mainOutflow = [[${mainOutflow}]];
+        const supermainInflow = [[${supermainInflow}]];
+        const bigmainInflow = [[${bigmainInflow}]];
+        const midmainInflow = [[${midmainInflow}]];
+        const smallmainInflow = [[${smallmainInflow}]];
 
         // 图表 A: 使用 ECharts 绘制饼图
         const chartA = echarts.init(document.getElementById('chartA'));

@@ -9,3 +9,14 @@ Start with the [course report](report/STA321%20Project%20Report.pdf) for the inp
 3. Open the output in the [Spring Boot CSV visualization](代码/csv-visualization). The [sample summary CSV](price_table_sorted.csv) contains net inflow, buy/sell volume and value by trade size, and time ranges.
 
 The processing and visualization modules are separate Maven projects.
+
+## Run the visualization
+
+With JDK 21, run:
+
+```bash
+cd 代码/csv-visualization
+./mvnw spring-boot:run
+```
+
+On Windows, use `.\mvnw.cmd spring-boot:run` from the same module. Open [the local dashboard](http://localhost:8080/) to view the bundled CSV. Enter a start time, an end time, or both in HHmm format (for example, `0930`). The filter compares the end time of each trading interval.
